@@ -20,7 +20,9 @@ def load_dataset(is_valid:bool):
     datasets= {}
     dataset = MNIST(os.getcwd(), train=True, download=True, transform=transforms.ToTensor())
     if is_valid:
-        train_dataset, val_dataset = random_split(dataset, [55000,5000])
+        train_size = int(0.8 * len(dataset))
+        valid_size = len(dataset) - train_size
+        train_dataset, val_dataset = random_split(dataset, [train_size, valid_size])
         datasets['train'] = train_dataset
         datasets['val'] = val_dataset
         return datasets

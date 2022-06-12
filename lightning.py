@@ -10,17 +10,16 @@ class LitLinear(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x,y = batch
-        print(x.shape, y.shape)
         x = x.view(x.size(0), -1)
         y_hat = self.model(x)
-        loss = F.mse_loss(y_hat,y)
+        loss = F.cross_entropy(y_hat,y)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x,y = batch
         x = x.view(x.size(0), -1)
         y_hat = self.model(x)
-        loss = F.mse_loss(y_hat,y)
+        loss = F.cross_entropy(y_hat,y)
         self.log("Train loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 

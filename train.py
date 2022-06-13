@@ -1,10 +1,7 @@
-from unicodedata import name
 from lightning import LitLinear
 from models import LinearModel
-from torchvision import transforms
-import os
-from torchvision.datasets import MNIST
-from torch.utils.data import DataLoader, random_split
+from dataset import load_mnist_dataset
+from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -16,18 +13,6 @@ Reference
 '''
 
 
-def load_dataset(is_valid:bool):
-    datasets= {}
-    dataset = MNIST(os.getcwd(), train=True, download=True, transform=transforms.ToTensor())
-    if is_valid:
-        train_size = int(0.8 * len(dataset))
-        valid_size = len(dataset) - train_size
-        train_dataset, val_dataset = random_split(dataset, [train_size, valid_size])
-        datasets['train'] = train_dataset
-        datasets['val'] = val_dataset
-        return datasets
-    return dataset
-
 if __name__ == "__main__":
 
     #define Fields
@@ -37,9 +22,9 @@ if __name__ == "__main__":
     IS_VALID = True
     pl.seed_everything(8)
     
-    datasets = load_dataset(IS_VALID)
+    datasets = load_mnist_dataset('train', IS_VALID)
     train_dataloader = DataLoader(datasets['train'], batch_size=BATCH_SIZE, num_workers=4)
-    val_datalodaer = ''
+    val_datalodaer = None
     if IS_VALID:
         val_datalodaer = DataLoader(datasets['val'], batch_size=BATCH_SIZE, num_workers=4)
 
@@ -51,9 +36,9 @@ if __name__ == "__main__":
         filename='mnist-epoch{epoch:02d}-val_loss{val/loss:.2f}',
         verbose=True,
         save_last=True,
-        monitor='val_acc',
+        monitor='val_acc', # 이거 찾아보고 다시 해야함
         mode='max'
     )
 
     trainer = pl.Trainer(gpus=AVAIL_GPU, max_epochs=EPOCH, progress_bar_refresh_rate=20, callbacks=[checkpoint_callback])
-    trainer.fit(model=model, train_dataloaders=train_dataloader)
+    trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_datalodaer)
